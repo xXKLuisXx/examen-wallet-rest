@@ -3,9 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Wallet;
 
-class WalletSeeder extends Seeder
+class PaymentSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,7 +14,5 @@ class WalletSeeder extends Seeder
     public function run()
     {
         //
-
-        $wallet = new Wallet();
     }
 }
