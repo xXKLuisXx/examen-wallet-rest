@@ -20,6 +20,10 @@ class PaymentStatusSeeder extends Seeder
         $payment_status->save();
 
         $payment_status = new PaymentStatus();
+        $payment_status->name = "Active";
+        $payment_status->save();
+
+        $payment_status = new PaymentStatus();
         $payment_status->name = "Rejected";
         $payment_status->save();
 

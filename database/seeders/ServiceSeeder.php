@@ -14,6 +14,9 @@ class ServiceSeeder extends Seeder
      */
     public function run()
     {
+        $service = new Service();
+        $service->name = "Recharge";
+        $service->save();
         //
         $service = new Service();
         $service->name = "Add product";

@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ServiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,11 +18,20 @@ use Illuminate\Validation\ValidationException;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    //Route::post('/wallet/payment/recharge', [PaymentController::class, 'newRecharge']); //payments
+
+    Route::get('/payments', [PaymentController::class, 'index']); // show payments
+
+    Route::get('/services', [ServiceController::class, 'index']); //services
+
+    Route::post('/wallet/payment/service', [PaymentController::class, 'store']); //payments
+
 });
-
 
 Route::post('login', function (Request $request) {
     $request->validate([
