@@ -20,7 +20,12 @@ class PaymentController extends Controller
     public function index()
     {
         //
-        return Auth::user()->wallet->payments->where('payment_status_id', 2);
+        return Auth::user()->wallet->payments->map(function($payment){
+            $payment->pivot->type;
+            $payment->status;
+            $payment->service;
+            return $payment;
+        });
     }
 
     /**
@@ -77,7 +82,7 @@ class PaymentController extends Controller
                     return $validator->errors();
                 }
             }else if($data['service_id'] == 2){ //es agregar producto
-                $payment->amount = 4;
+                $payment->amount = 5;
                 $payment->taxes = $payment->amount * 0.02;
                 $payment->final_amount = $payment->amount + $payment->taxes;
                 $payment->payment_status_id = 1; // pendiente

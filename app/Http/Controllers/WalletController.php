@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Wallet;
 use Illuminate\Http\Request;
+use Auth;
 
 class WalletController extends Controller
 {
@@ -15,6 +16,7 @@ class WalletController extends Controller
     public function index()
     {
         //
+        return Auth::user()->wallet;
     }
 
     /**

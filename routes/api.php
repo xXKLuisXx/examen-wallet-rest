@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\WalletController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/services', [ServiceController::class, 'index']); //services
 
     Route::post('/wallet/payment/service', [PaymentController::class, 'store']); //payments
+    
+    Route::get('/wallet', [WalletController::class, 'index']); // show payments
 
 });
 
