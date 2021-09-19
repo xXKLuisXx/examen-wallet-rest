@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\Wallet;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Auth;
@@ -18,7 +20,7 @@ class PaymentController extends Controller
     public function index()
     {
         //
-        return Payment::all();
+        return Auth::user()->wallet->payments->where('payment_status_id', 2);
     }
 
     /**
@@ -93,33 +95,61 @@ class PaymentController extends Controller
                 $payment->wallets()->attach(Auth::user()->wallet->id,['payment_type_id' => 2]);
                 $payment->wallets()->attach(User::where('rol_id', 2)->first()->wallet->id,['payment_type_id' => 1]);
             }else if($data['service_id'] == 3){ // es lanzar una campaña de marketing
-                $payment->amount = 1;
-                $payment->taxes = $payment->amount * 0.02;
-                $payment->final_amount = $payment->amount + $payment->taxes;
-                $payment->payment_status_id = 1; // pendiente
-                $payment->service_id = $data['service_id'];
-                $payment->save();
+                $rules = [                              
+                    //'method' => 'required|string',
+                    'isActive' => 'required|bool',
+                    //'service_id' => 'required|numeric'
+                ];
+                //dd($decodedRequest);
+                $validator = Validator::make($data, $rules);                        //Define a Validator for the Data
+                if($validator->passes()){
+                    if($data['isActive']){ // si es verdadero hay que crear un nuevo pago
+                        $paymentFound = Auth::user()->wallet->payments->where('payment_status_id', 2)->first();
+                        if($paymentFound){
+                            return response()->json(['errors' => 'service is already active'],400);
+                        }else {
+                            $payment->amount = 1;
+                            $payment->taxes = $payment->amount * 0.02;
+                            $payment->final_amount = $payment->amount + $payment->taxes;
+                            $payment->payment_status_id = 1; // pendiente
+                            $payment->service_id = $data['service_id'];
+                            $payment->save();
 
-                if(Auth::user()->wallet->balance >= $payment->final_amount){
-                    $payment->payment_status_id = 2; // activo
-                    $payment->save();
-                }else{
-                    $payment->payment_status_id = 3; // rechazado
-                    $payment->save();
-                    return response()->json(["error" => "insufficient founds"],400);
+                            if(Auth::user()->wallet->balance >= $payment->final_amount){
+                                $payment->payment_status_id = 2; // activo
+                                $payment->save();
+                            }else{
+                                $payment->payment_status_id = 3; // rechazado
+                                $payment->save();
+                                return response()->json(["error" => "insufficient founds"],400);
+                            }
+                            $payment->wallets()->attach(Auth::user()->wallet->id,['payment_type_id' => 2]);
+                            $payment->wallets()->attach(User::where('rol_id', 2)->first()->wallet->id,['payment_type_id' => 1]);
+                        }
+                    }else{
+                        $paymentFound = Auth::user()->wallet->payments->where('payment_status_id', 2)->first();
+                        if($paymentFound){
+                            $paymentFound->payment_status_id = 4;
+                            $paymentFound->save();
+
+                            return $paymentFound;
+                        }else {
+                            return response()->json(['errors' => 'there is no active service to cancel'],400);
+                        }
+                    }
+                }else {
+                    return $validator->errors();
                 }
-                $payment->wallets()->attach(Auth::user()->wallet->id,['payment_type_id' => 2]);
-                $payment->wallets()->attach(User::where('rol_id', 2)->first()->wallet->id,['payment_type_id' => 1]);
             }else { // service id no valido
                 return response()->json(["errors" => "invalid service_id"]);
             }
 
             $payment->wallets->map(function($wallet) use ($payment){
-                if($wallet->pivot->type->id == 1){
+                if($wallet->pivot->type->id == 1){// es recarga
                     $wallet->balance += $payment->amount;
-                }else if($wallet->pivot->type->id == 2){
-                    $wallet->balance += $payment->final_amount * - 1;
-                }else if($wallet->pivot->type->id == 3){
+                }else if($wallet->pivot->type->id == 2){ // estas pagando
+                    $wallet->balance += $payment->amount * - 1;
+                }else if($wallet->pivot->type->id == 3){ // recibes comisiones
                     $wallet->balance += $payment->taxes;
                 }
                 $wallet->save();

@@ -18,6 +18,12 @@ use App\Http\Controllers\ServiceController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, HEAD, OPTIONS, POST, PUT, DELETE');
+header('Access-Control-Max-Age: 3600');
+header('Access-Control-Allow-Headers: Access-Control-Allow-Headers, Origin, Accept, Content-Type, X-Requested-With, X-CSRF-TOKEN, *');
+header('Access-Control-Allow-Credentials: true');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
